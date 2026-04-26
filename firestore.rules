@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /rooms/{roomId} {
+      // Anyone with the link can read; rooms are created once and never modified
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(
+                        ['id', 'cardDeck', 'createdBy', 'createdAt', 'expiresAt'])
+                  && request.resource.data.cardDeck is list
+                  && request.resource.data.cardDeck.size() > 0
+                  && request.resource.data.createdBy is string
+                  && request.resource.data.createdBy.size() > 0;
+      allow update, delete: if false;
+
+      match /participants/{participantId} {
+        allow read: if true;
+        allow create: if request.resource.data.keys().hasAll(
+                          ['id', 'name', 'joinedAt', 'lastSeen'])
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0;
+        // Heartbeat (lastSeen) and name are the only fields that ever change
+        allow update: if request.resource.data.diff(resource.data)
+                        .affectedKeys().hasOnly(['lastSeen', 'name']);
+        allow delete: if false;
+      }
+
+      match /sessions/{sessionId} {
+        allow read: if true;
+        allow create: if request.resource.data.keys().hasAll(
+                          ['storyId', 'description', 'status', 'createdAt', 'createdBy'])
+                    && request.resource.data.status == 'voting'
+                    && request.resource.data.storyId is string
+                    && request.resource.data.storyId.size() > 0;
+        // Status can only move forward: voting -> revealed; no other fields change
+        allow update: if resource.data.status == 'voting'
+                    && request.resource.data.status == 'revealed'
+                    && request.resource.data.diff(resource.data)
+                        .affectedKeys().hasOnly(['status']);
+        allow delete: if false;
+
+        match /votes/{voteId} {
+          allow read: if true;
+          // Doc ID = participantId; enforce that the payload matches the ID
+          allow create: if request.resource.data.keys().hasAll(
+                            ['participantId', 'participantName', 'value', 'votedAt'])
+                      && request.resource.data.participantId == voteId
+                      && request.resource.data.value is string
+                      && request.resource.data.value.size() > 0;
+          // Allow re-voting (setDoc overwrites) before reveal
+          allow update: if resource.data.participantId == voteId
+                      && request.resource.data.participantId == voteId;
+          allow delete: if false;
+        }
+      }
+    }
+
+  }
+}
