@@ -258,4 +258,4 @@ rooms/{roomId}
 
 ## License
 
-MIT
+[MIT](./LICENSE) © 2026 Erandaka Bandara
