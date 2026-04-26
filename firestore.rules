@@ -22,7 +22,7 @@ service cloud.firestore {
         // Heartbeat (lastSeen) and name are the only fields that ever change
         allow update: if request.resource.data.diff(resource.data)
                         .affectedKeys().hasOnly(['lastSeen', 'name']);
-        allow delete: if false;
+        allow delete: if true;
       }
 
       match /sessions/{sessionId} {

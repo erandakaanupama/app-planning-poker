@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useUser } from '../context/UserContext';
 import { useRoom } from '../hooks/useRoom';
@@ -62,6 +62,27 @@ export default function RoomPage() {
         // ignore offline errors
       }
     }, 120_000);
+    return () => clearInterval(interval);
+  }, [roomId, joined, user.id]);
+
+  // Keep a ref so the cleanup interval always reads the latest participants
+  const participantsRef = useRef(participants);
+  useEffect(() => { participantsRef.current = participants; }, [participants]);
+
+  // Stale participant cleanup — runs every 5 minutes, not on every snapshot
+  useEffect(() => {
+    if (!roomId || !joined) return;
+    const interval = setInterval(() => {
+      const STALE_MS = 5 * 60 * 1000;
+      const now = Date.now();
+      participantsRef.current.forEach((p) => {
+        if (p.id === user.id) return;
+        const lastSeenMs = p.lastSeen?.toMillis?.() ?? 0;
+        if (now - lastSeenMs > STALE_MS) {
+          deleteDoc(doc(db, 'rooms', roomId, 'participants', p.id)).catch(() => {});
+        }
+      });
+    }, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [roomId, joined, user.id]);
 
@@ -141,7 +162,12 @@ export default function RoomPage() {
               </div>
             </div>
             <button
-              onClick={() => navigate('/')}
+              onClick={async () => {
+                if (roomId && joined) {
+                  deleteDoc(doc(db, 'rooms', roomId, 'participants', user.id)).catch(() => {});
+                }
+                navigate('/');
+              }}
               className="text-sm text-gray-500 hover:text-gray-700"
             >
               Leave
