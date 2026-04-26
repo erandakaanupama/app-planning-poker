@@ -61,7 +61,7 @@ export default function RoomPage() {
       } catch {
         // ignore offline errors
       }
-    }, 30_000);
+    }, 120_000);
     return () => clearInterval(interval);
   }, [roomId, joined, user.id]);
 
