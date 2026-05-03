@@ -179,9 +179,9 @@ export default function RoomPage() {
         </header>
 
         {/* Main content */}
-        <main className="w-4/5 mx-auto flex py-6 gap-6">
+        <main className="w-full lg:w-4/5 mx-auto grid grid-cols-[2fr_1fr] lg:grid-cols-[3fr_1fr_1fr] py-4 lg:py-6 gap-4 lg:gap-6 px-3 lg:px-0">
           {/* Column 1 — voting area (60%) */}
-          <div className="flex-[3_1_0] min-w-0 space-y-4">
+          <div className="min-w-0 space-y-4">
             <SessionControl
               roomId={roomId!}
               currentSession={session}
@@ -213,7 +213,7 @@ export default function RoomPage() {
           </div>
 
           {/* Column 2 — participants */}
-          <div className="flex-[1_1_0] min-w-0 space-y-4">
+          <div className="min-w-0 space-y-4">
             <ShareRoomLink roomId={roomId!} />
             <ParticipantsList
               participants={participants}
@@ -224,7 +224,7 @@ export default function RoomPage() {
           </div>
 
           {/* Column 3 — vote history */}
-          <div className="flex-[1_1_0] min-w-0 space-y-4">
+          <div className="col-span-2 lg:col-span-1 min-w-0 space-y-4">
             <VotingHistory sessions={finalizedSessions} />
           </div>
         </main>

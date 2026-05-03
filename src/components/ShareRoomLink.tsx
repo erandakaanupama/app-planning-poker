@@ -19,7 +19,7 @@ export default function ShareRoomLink({ roomId }: ShareRoomLinkProps) {
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
         Share Room
       </p>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2">
         <input
           readOnly
           value={url}
