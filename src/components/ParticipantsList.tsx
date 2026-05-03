@@ -4,7 +4,7 @@ interface ParticipantsListProps {
   participants: Participant[];
   currentUserId: string;
   votedIds?: Set<string>;
-  sessionStatus?: 'voting' | 'revealed' | null;
+  sessionStatus?: 'voting' | 'revealed' | 'finalized' | null;
 }
 
 export default function ParticipantsList({

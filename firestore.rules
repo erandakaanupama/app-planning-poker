@@ -32,11 +32,23 @@ service cloud.firestore {
                     && request.resource.data.status == 'voting'
                     && request.resource.data.storyId is string
                     && request.resource.data.storyId.size() > 0;
-        // Status can only move forward: voting -> revealed; no other fields change
-        allow update: if resource.data.status == 'voting'
-                    && request.resource.data.status == 'revealed'
-                    && request.resource.data.diff(resource.data)
-                        .affectedKeys().hasOnly(['status']);
+        // Allowed transitions:
+        //   voting    -> revealed   (only status changes)
+        //   revealed  -> finalized  (status + finalValue set)
+        //   finalized -> revealed   (edit: status reverts, finalValue removed)
+        allow update: if (
+          (resource.data.status == 'voting'
+            && request.resource.data.status == 'revealed'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']))
+          || (resource.data.status == 'revealed'
+            && request.resource.data.status == 'finalized'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'finalValue'])
+            && request.resource.data.finalValue is string
+            && request.resource.data.finalValue.size() > 0)
+          || (resource.data.status == 'finalized'
+            && request.resource.data.status == 'revealed'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'finalValue']))
+        );
         allow delete: if false;
 
         match /votes/{voteId} {

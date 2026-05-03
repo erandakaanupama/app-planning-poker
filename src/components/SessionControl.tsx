@@ -61,12 +61,27 @@ export default function SessionControl({
 
   if (currentSession?.status === 'revealed') {
     return (
+      <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
+        <p className="text-xs font-semibold text-green-500 uppercase tracking-wider mb-1">
+          Revealed
+        </p>
+        <p className="font-bold text-lg text-gray-800">{currentSession.storyId}</p>
+        <p className="text-green-600 text-sm mt-2 font-medium">Set the final estimate below to proceed…</p>
+      </div>
+    );
+  }
+
+  if (currentSession?.status === 'finalized') {
+    return (
       <div className="space-y-4">
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
-          <p className="text-xs font-semibold text-green-500 uppercase tracking-wider mb-1">
-            Revealed
+        <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4">
+          <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">
+            Finalized
           </p>
-          <p className="font-bold text-lg text-gray-800">{currentSession.storyId}</p>
+          <p className="font-bold text-lg text-gray-800">
+            {currentSession.storyId}
+            <span className="ml-2 text-indigo-600">→ {currentSession.finalValue}</span>
+          </p>
         </div>
         <StartSessionForm
           storyId={storyId}

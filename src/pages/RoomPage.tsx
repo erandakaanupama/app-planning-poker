@@ -7,12 +7,14 @@ import { useRoom } from '../hooks/useRoom';
 import { useParticipants } from '../hooks/useParticipants';
 import { useCurrentSession } from '../hooks/useCurrentSession';
 import { useVotes } from '../hooks/useVotes';
+import { useFinalizedSessions } from '../hooks/useFinalizedSessions';
 import NamePrompt from '../components/NamePrompt';
 import ParticipantsList from '../components/ParticipantsList';
 import SessionControl from '../components/SessionControl';
 import VotingCards from '../components/VotingCards';
 import RevealControl from '../components/RevealControl';
 import ShareRoomLink from '../components/ShareRoomLink';
+import VotingHistory from '../components/VotingHistory';
 
 export default function RoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -23,6 +25,7 @@ export default function RoomPage() {
   const participants = useParticipants(roomId);
   const { session, loading: sessionLoading } = useCurrentSession(roomId);
   const votes = useVotes(roomId, session?.id);
+  const finalizedSessions = useFinalizedSessions(roomId);
 
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [joined, setJoined] = useState(false);
@@ -149,7 +152,7 @@ export default function RoomPage() {
       <div className="min-h-screen bg-gray-50">
         {/* Top bar */}
         <header className="bg-white shadow-sm sticky top-0 z-10">
-          <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="w-4/5 mx-auto py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🃏</span>
               <div>
@@ -176,9 +179,9 @@ export default function RoomPage() {
         </header>
 
         {/* Main content */}
-        <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column */}
-          <div className="lg:col-span-2 space-y-4">
+        <main className="w-4/5 mx-auto flex py-6 gap-6">
+          {/* Column 1 — voting area (60%) */}
+          <div className="flex-[3_1_0] min-w-0 space-y-4">
             <SessionControl
               roomId={roomId!}
               currentSession={session}
@@ -188,15 +191,18 @@ export default function RoomPage() {
 
             {session && (
               <>
-                <VotingCards
-                  cardDeck={room!.cardDeck}
-                  session={session}
-                  roomId={roomId!}
-                  participantId={user.id}
-                  participantName={user.name}
-                  currentVote={myVote}
-                />
+                {session.status !== 'finalized' && (
+                  <VotingCards
+                    cardDeck={room!.cardDeck}
+                    session={session}
+                    roomId={roomId!}
+                    participantId={user.id}
+                    participantName={user.name}
+                    currentVote={myVote}
+                  />
+                )}
                 <RevealControl
+                  key={session.id}
                   session={session}
                   roomId={roomId!}
                   votes={votes}
@@ -206,8 +212,8 @@ export default function RoomPage() {
             )}
           </div>
 
-          {/* Right column */}
-          <div className="space-y-4">
+          {/* Column 2 — participants */}
+          <div className="flex-[1_1_0] min-w-0 space-y-4">
             <ShareRoomLink roomId={roomId!} />
             <ParticipantsList
               participants={participants}
@@ -215,6 +221,11 @@ export default function RoomPage() {
               votedIds={votedIds}
               sessionStatus={session?.status ?? null}
             />
+          </div>
+
+          {/* Column 3 — vote history */}
+          <div className="flex-[1_1_0] min-w-0 space-y-4">
+            <VotingHistory sessions={finalizedSessions} />
           </div>
         </main>
       </div>

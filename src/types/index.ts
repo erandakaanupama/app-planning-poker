@@ -15,7 +15,7 @@ export interface Participant {
   lastSeen: Timestamp;
 }
 
-export type SessionStatus = 'voting' | 'revealed';
+export type SessionStatus = 'voting' | 'revealed' | 'finalized';
 
 export interface Session {
   id: string;
@@ -24,6 +24,7 @@ export interface Session {
   status: SessionStatus;
   createdAt: Timestamp;
   createdBy: string;
+  finalValue?: string;
 }
 
 export interface Vote {
